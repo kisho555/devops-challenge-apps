@@ -1,0 +1,37 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Build and push web app Docker image
+        run: |
+          docker build -t your-web-app-image ./webapp
+          echo ${{ secrets.AWS_ACCESS_KEY_ID }} | docker login --username AWS --password-stdin https://your-aws-account-id.dkr.ecr.your-region.amazonaws.com
+          docker tag your-web-app-image:latest your-aws-account-id.dkr.ecr.your-region.amazonaws.com/your-web-app-image:latest
+          docker push your-aws-account-id.dkr.ecr.your-region.amazonaws.com/your-web-app-image:latest
+
+      - name: Build and push API Docker image
+        run: |
+          docker build -t your-api-image ./api
+          echo ${{ secrets.AWS_ACCESS_KEY_ID }} | docker login --username AWS --password-stdin https://your-aws-account-id.dkr.ecr.your-region.amazonaws.com
+          docker tag your-api-image:latest your-aws-account-id.dkr.ecr.your-region.amazonaws.com/your-api-image:latest
+          docker push your-aws-account-id.dkr.ecr.your-region.amazonaws.com/your-api-image:latest
+
+      - name: Deploy to AWS EC2
+        run: |
+          # Use AWS CLI or Terraform to deploy the updated images to EC2 instances
+
+      - name: Clean up
+        run: |
+          docker logout https://your-aws-account-id.dkr.ecr.your-region.amazonaws.com
+
